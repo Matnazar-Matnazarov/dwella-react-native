@@ -13,7 +13,25 @@ interface JobListing {
   category: string;
   postedTime: string;
   image: string;
+  isActive: boolean;
 }
+
+// Define type for categories
+interface Category {
+  id: string;
+  name: string;
+  icon: string;
+}
+
+// Categories for filtering
+const categories: Category[] = [
+  { id: 'all', name: 'Barchasi', icon: 'grid-outline' },
+  { id: 'santexnik', name: 'Santexnik', icon: 'water-outline' },
+  { id: 'elektrik', name: 'Elektrik', icon: 'flash-outline' },
+  { id: 'duradgor', name: 'Duradgor', icon: 'hammer-outline' },
+  { id: 'dizayner', name: 'Dizayner', icon: 'color-palette-outline' },
+  { id: 'plastik', name: 'Plastik oyna', icon: 'window-outline' }
+];
 
 // Sample job listings data
 const jobListings: JobListing[] = [
@@ -23,9 +41,10 @@ const jobListings: JobListing[] = [
     description: 'Kvartiraga santexnik kerak. Suv oqimi bilan bog\'liq muammo bor.',
     budget: '500,000',
     location: 'Tashkent, Chilonzor',
-    category: 'Santexnik',
+    category: 'santexnik',
     postedTime: '2 soat oldin',
-    image: 'https://images.unsplash.com/photo-1581093458791-9f3c3250a8b7?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.unsplash.com/photo-1581093458791-9f3c3250a8b7?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    isActive: true
   },
   {
     id: '2',
@@ -33,9 +52,10 @@ const jobListings: JobListing[] = [
     description: 'Ofis binosida elektr tarmog\'ini yangilash kerak.',
     budget: '1,200,000',
     location: 'Tashkent, Mirzo-Ulug\'bek',
-    category: 'Elektrik',
+    category: 'elektrik',
     postedTime: '5 soat oldin',
-    image: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    isActive: true
   },
   {
     id: '3',
@@ -43,9 +63,10 @@ const jobListings: JobListing[] = [
     description: 'Xonani ta\'mirlash kerak. Devorlarni oqish va shiftni ta\'mirlash.',
     budget: '800,000',
     location: 'Tashkent, Yakkasaroy',
-    category: 'Duradgor',
+    category: 'duradgor',
     postedTime: '1 kun oldin',
-    image: 'https://images.unsplash.com/photo-1584622650111-9938b6c7d1d0?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.unsplash.com/photo-1584622650111-9938b6c7d1d0?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    isActive: true
   },
   {
     id: '4',
@@ -53,9 +74,10 @@ const jobListings: JobListing[] = [
     description: 'Kvartira interyerini loyihalash kerak. 3 xonali kvartira.',
     budget: '2,500,000',
     location: 'Tashkent, Yunusobod',
-    category: 'Dizayner',
+    category: 'dizayner',
     postedTime: '2 kun oldin',
-    image: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    isActive: true
   },
   {
     id: '5',
@@ -63,26 +85,11 @@ const jobListings: JobListing[] = [
     description: '3 xonali kvartira uchun plastik oynalarni o\'rnatish kerak.',
     budget: '3,000,000',
     location: 'Tashkent, Mirobod',
-    category: 'Plastik oyna',
+    category: 'plastik',
     postedTime: '3 kun oldin',
-    image: 'https://images.unsplash.com/photo-1584622650111-9938b6c7d1d0?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80'
+    image: 'https://images.unsplash.com/photo-1584622650111-9938b6c7d1d0?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+    isActive: true
   }
-];
-
-// Define type for categories
-interface Category {
-  id: string;
-  name: string;
-}
-
-// Categories for filtering
-const categories: Category[] = [
-  { id: 'all', name: 'Barchasi' },
-  { id: 'santexnik', name: 'Santexnik' },
-  { id: 'elektrik', name: 'Elektrik' },
-  { id: 'duradgor', name: 'Duradgor' },
-  { id: 'dizayner', name: 'Dizayner' },
-  { id: 'plastik', name: 'Plastik oyna' }
 ];
 
 export default function ExploreScreen() {
@@ -92,12 +99,18 @@ export default function ExploreScreen() {
   const filteredJobs = jobListings.filter(job => {
     const matchesSearch = job.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
                          job.description.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === 'all' || job.category.toLowerCase() === selectedCategory;
+    const matchesCategory = selectedCategory === 'all' || job.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
 
   const renderJobItem = ({ item }: { item: JobListing }) => (
-    <TouchableOpacity className="bg-card rounded-lg shadow-sm border border-border mb-4 overflow-hidden">
+    <TouchableOpacity 
+      className="bg-white rounded-lg shadow-sm border border-border mb-4 overflow-hidden"
+      onPress={() => router.push({
+        pathname: '/[id]',
+        params: { id: item.id }
+      })}
+    >
       <View className="flex-row">
         <View className="w-1/3">
           <Image 
@@ -107,7 +120,14 @@ export default function ExploreScreen() {
           />
         </View>
         <View className="w-2/3 p-3">
-          <Text className="text-lg font-semibold text-text mb-1" numberOfLines={1}>{item.title}</Text>
+          <View className="flex-row items-center justify-between mb-1">
+            <Text className="text-lg font-semibold text-text" numberOfLines={1}>{item.title}</Text>
+            <View className={`px-2 py-1 rounded ${item.isActive ? 'bg-green-100' : 'bg-gray-100'}`}>
+              <Text className={`text-xs ${item.isActive ? 'text-green-600' : 'text-gray-600'}`}>
+                {item.isActive ? 'Faol' : 'Yakunlangan'}
+              </Text>
+            </View>
+          </View>
           <Text className="text-sm text-secondary mb-2" numberOfLines={2}>{item.description}</Text>
           <View className="flex-row items-center mb-1">
             <Ionicons name="cash-outline" size={16} color="#6B7280" />
@@ -139,7 +159,7 @@ export default function ExploreScreen() {
         </View>
         
         <View className="mb-4">
-          <View className="flex-row items-center border border-border rounded-lg bg-card px-3">
+          <View className="flex-row items-center border border-border rounded-lg bg-white px-3">
             <Ionicons name="search-outline" size={20} color="#6B7280" />
             <TextInput
               className="flex-1 p-3 text-text"
@@ -161,13 +181,19 @@ export default function ExploreScreen() {
             {categories.map(category => (
               <TouchableOpacity 
                 key={category.id}
-                className={`mr-2 px-3 py-1 rounded-full ${
+                className={`mr-2 px-3 py-1 rounded-full flex-row items-center ${
                   selectedCategory === category.id 
                     ? 'bg-primary' 
-                    : 'bg-card border border-border'
+                    : 'bg-white border border-border'
                 }`}
                 onPress={() => setSelectedCategory(category.id)}
               >
+                <Ionicons 
+                  name={category.icon as any} 
+                  size={16} 
+                  color={selectedCategory === category.id ? '#FFFFFF' : '#6B7280'} 
+                  style={{ marginRight: 4 }}
+                />
                 <Text 
                   className={`text-sm ${
                     selectedCategory === category.id 

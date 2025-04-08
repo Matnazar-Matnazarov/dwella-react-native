@@ -26,41 +26,75 @@ interface MenuItem {
   title: string;
   icon: string;
   color?: string;
+  onPress?: () => void;
 }
-
-// Menu items
-const menuItems: MenuItem[] = [
-  { id: 'profile', title: 'Profil', icon: 'person-outline' },
-  { id: 'settings', title: 'Sozlamalar', icon: 'settings-outline' },
-  { id: 'notifications', title: 'Bildirishnomalar', icon: 'notifications-outline' },
-  { id: 'help', title: 'Yordam', icon: 'help-circle-outline' },
-  { id: 'about', title: 'Ilova haqida', icon: 'information-circle-outline' },
-  { id: 'logout', title: 'Chiqish', icon: 'log-out-outline', color: 'text-red-500' }
-];
 
 export default function ProfileScreen() {
   const [showMenu, setShowMenu] = useState(false);
 
-  const handleMenuPress = (itemId: string) => {
-    if (itemId === 'logout') {
-      Alert.alert(
-        "Chiqish",
-        "Haqiqatan ham chiqmoqchimisiz?",
-        [
-          {
-            text: "Yo'q",
-            style: "cancel"
-          },
-          { 
-            text: "Ha", 
-            onPress: () => router.replace('/login')
+  const handleLogout = () => {
+    Alert.alert(
+      'Chiqish',
+      'Hisobingizdan chiqishni xohlaysizmi?',
+      [
+        {
+          text: 'Bekor qilish',
+          style: 'cancel'
+        },
+        {
+          text: 'Chiqish',
+          style: 'destructive',
+          onPress: () => {
+            // Implement logout logic here
+            // Clear auth tokens, user data, etc.
+            router.replace('/login');
           }
-        ]
-      );
-    } else {
-      // Handle other menu items
-      setShowMenu(false);
+        }
+      ]
+    );
+  };
+
+  const menuItems: MenuItem[] = [
+    {
+      id: '1',
+      title: 'Profil',
+      icon: 'person-outline'
+    },
+    {
+      id: '2',
+      title: 'Sozlamalar',
+      icon: 'settings-outline'
+    },
+    {
+      id: '3',
+      title: 'Bildirishnomalar',
+      icon: 'notifications-outline',
+      onPress: () => router.push('/notifications')
+    },
+    {
+      id: '4',
+      title: 'Yordam',
+      icon: 'help-circle-outline'
+    },
+    {
+      id: '5',
+      title: 'Biz haqimizda',
+      icon: 'information-circle-outline'
+    },
+    {
+      id: '6',
+      title: 'Chiqish',
+      icon: 'log-out-outline',
+      color: '#EF4444',
+      onPress: handleLogout
     }
+  ];
+
+  const handleMenuPress = (item: MenuItem) => {
+    if (item.onPress) {
+      item.onPress();
+    }
+    setShowMenu(false);
   };
 
   return (
@@ -89,17 +123,19 @@ export default function ProfileScreen() {
       {/* Menu dropdown */}
       {showMenu && (
         <View className="absolute top-16 right-4 z-10 bg-card rounded-lg shadow-lg border border-border w-48">
-          {menuItems.map(item => (
-            <TouchableOpacity 
+          {menuItems.map((item) => (
+            <TouchableOpacity
               key={item.id}
               className="flex-row items-center p-3 border-b border-border"
-              onPress={() => handleMenuPress(item.id)}
+              onPress={() => handleMenuPress(item)}
             >
-              <Ionicons 
-                name={item.icon as any} 
-                size={20} 
-                color={item.color ? '#EF4444' : '#6B7280'} 
-              />
+              <View className={`w-10 h-10 rounded-full ${item.color ? 'bg-red-100' : 'bg-primary/10'} items-center justify-center`}>
+                <Ionicons 
+                  name={item.icon as any} 
+                  size={20} 
+                  color={item.color || '#4F46E5'} 
+                />
+              </View>
               <Text className={`ml-3 ${item.color || 'text-secondary'}`}>{item.title}</Text>
             </TouchableOpacity>
           ))}
@@ -241,7 +277,7 @@ export default function ProfileScreen() {
         {/* Logout button */}
         <TouchableOpacity 
           className="bg-red-500/10 p-4 mb-6 mx-4 rounded-lg flex-row items-center justify-center"
-          onPress={() => handleMenuPress('logout')}
+          onPress={() => handleMenuPress(menuItems[5])}
         >
           <Ionicons name="log-out-outline" size={20} color="#EF4444" />
           <Text className="text-red-500 font-medium ml-2">Chiqish</Text>
