@@ -1,131 +1,218 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Image, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import { FontAwesome } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import * as Google from 'expo-auth-session/providers/google';
+import * as WebBrowser from 'expo-web-browser';
 
-export default function LoginScreen() {
+WebBrowser.maybeCompleteAuthSession();
+
+export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleLogin = async () => {
-    setLoading(true);
-    try {
-      // Implement email/password login logic here
-      router.replace('/(tabs)');
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [request, response, promptAsync] = Google.useAuthRequest({
+    expoClientId: 'YOUR_GOOGLE_CLIENT_ID',
+    iosClientId: 'YOUR_GOOGLE_IOS_CLIENT_ID',
+    androidClientId: 'YOUR_GOOGLE_ANDROID_CLIENT_ID',
+  });
 
-  const handleGoogleLogin = async () => {
-    try {
-      // Implement Google login logic here
+  React.useEffect(() => {
+    if (response?.type === 'success') {
+      const { authentication } = response;
+      // Handle successful Google authentication
+      console.log('Google auth success:', authentication);
       router.replace('/(tabs)');
-    } catch (error) {
-      console.error(error);
     }
+  }, [response]);
+
+  const handleLogin = () => {
+    if (!email || !password) {
+      setError('Iltimos, barcha maydonlarni to\'ldiring');
+      return;
+    }
+    // TODO: Implement email login logic
+    router.replace('/(tabs)');
   };
 
   return (
-    <KeyboardAvoidingView 
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      className="flex-1 bg-background"
-    >
-      <ScrollView className="flex-1" contentContainerStyle={{ flexGrow: 1 }}>
-        {/* Logo and Header */}
-        <View className="items-center pt-20 pb-10">
-          <View className="w-24 h-24 bg-primary/10 rounded-2xl items-center justify-center mb-4">
-            <Ionicons name="home" size={48} color="#4F46E5" />
-          </View>
-          <Text className="text-3xl font-bold text-text mb-2">Dwella</Text>
-          <Text className="text-base text-secondary">Tizimga kirish</Text>
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <Image source={require('../assets/constructor_avatar.jpeg')} style={styles.logo} />
+        <Text style={styles.title}>Dwella</Text>
+        <Text style={styles.subtitle}>Ustalar va mijozlar uchun platforma</Text>
+      </View>
+
+      <View style={styles.form}>
+        {error ? <Text style={styles.error}>{error}</Text> : null}
+        
+        <View style={styles.inputContainer}>
+          <FontAwesome name="envelope" size={20} color="#6B7280" style={styles.inputIcon} />
+          <TextInput
+            style={styles.input}
+            placeholder="Email"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
         </View>
 
-        {/* Login Form */}
-        <View className="px-4 pt-8">
-          <View className="mb-4">
-            <Text className="text-sm font-medium text-text mb-1">Email</Text>
-            <TextInput
-              className="border border-border rounded-lg p-4 bg-card text-text"
-              placeholder="Email manzilingizni kiriting"
-              placeholderTextColor="#9CA3AF"
-              keyboardType="email-address"
-              autoCapitalize="none"
-              value={email}
-              onChangeText={setEmail}
-            />
-          </View>
+        <View style={styles.inputContainer}>
+          <FontAwesome name="lock" size={20} color="#6B7280" style={styles.inputIcon} />
+          <TextInput
+            style={styles.input}
+            placeholder="Parol"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+          />
+        </View>
 
-          <View className="mb-6">
-            <Text className="text-sm font-medium text-text mb-1">Parol</Text>
-            <View className="relative">
-              <TextInput
-                className="border border-border rounded-lg p-4 bg-card text-text pr-12"
-                placeholder="Parolingizni kiriting"
-                placeholderTextColor="#9CA3AF"
-                secureTextEntry={!showPassword}
-                value={password}
-                onChangeText={setPassword}
-              />
-              <TouchableOpacity 
-                className="absolute right-4 top-4"
-                onPress={() => setShowPassword(!showPassword)}
-              >
-                <Ionicons 
-                  name={showPassword ? "eye-off-outline" : "eye-outline"} 
-                  size={24} 
-                  color="#6B7280" 
-                />
-              </TouchableOpacity>
-            </View>
-          </View>
+        <TouchableOpacity style={styles.button} onPress={handleLogin}>
+          <Text style={styles.buttonText}>Kirish</Text>
+        </TouchableOpacity>
 
-          <TouchableOpacity 
-            className="bg-primary rounded-lg p-4 items-center shadow-sm mb-4"
-            onPress={handleLogin}
-            disabled={loading}
-          >
-            <Text className="text-white font-medium text-lg">
-              {loading ? 'Kirish...' : 'Kirish'}
-            </Text>
+        <View style={styles.divider}>
+          <View style={styles.dividerLine} />
+          <Text style={styles.dividerText}>yoki</Text>
+          <View style={styles.dividerLine} />
+        </View>
+
+        <TouchableOpacity 
+          style={styles.googleButton}
+          onPress={() => promptAsync()}
+          disabled={!request}
+        >
+          <Image 
+            source={require('../assets/constructor_avatar.jpeg')} 
+            style={styles.googleIcon} 
+          />
+          <Text style={styles.googleButtonText}>Google orqali kirish</Text>
+        </TouchableOpacity>
+
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>Akkauntingiz yo'qmi?</Text>
+          <TouchableOpacity onPress={() => router.push('/register')}>
+            <Text style={styles.footerLink}>Ro'yxatdan o'tish</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity 
-            className="mb-6"
-            onPress={() => router.push('/forgot-password')}
-          >
-            <Text className="text-primary text-center">Parolni unutdingizmi?</Text>
-          </TouchableOpacity>
-
-          <View className="flex-row items-center mb-6">
-            <View className="flex-1 h-[1px] bg-border" />
-            <Text className="text-secondary mx-4">yoki</Text>
-            <View className="flex-1 h-[1px] bg-border" />
-          </View>
-
-          <TouchableOpacity 
-            className="bg-white border border-border rounded-lg p-4 flex-row items-center justify-center shadow-sm mb-6"
-            onPress={handleGoogleLogin}
-          >
-            <Image 
-              source={{ uri: 'https://www.google.com/favicon.ico' }}
-              className="w-5 h-5 mr-3"
-            />
-            <Text className="text-text font-medium">Google orqali kirish</Text>
-          </TouchableOpacity>
-
-          <View className="flex-row justify-center">
-            <Text className="text-secondary">Hisobingiz yo'qmi? </Text>
-            <TouchableOpacity onPress={() => router.push('/register')}>
-              <Text className="text-primary font-medium">Ro'yxatdan o'tish</Text>
-            </TouchableOpacity>
-          </View>
+        </View>
+      </View>
     </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    padding: 20,
+  },
+  header: {
+    alignItems: 'center',
+    marginTop: 60,
+    marginBottom: 40,
+  },
+  logo: {
+    width: 80,
+    height: 80,
+    marginBottom: 16,
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#1F2937',
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#6B7280',
+    textAlign: 'center',
+  },
+  form: {
+    width: '100%',
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F3F4F6',
+    borderRadius: 12,
+    marginBottom: 16,
+    paddingHorizontal: 16,
+  },
+  inputIcon: {
+    marginRight: 12,
+  },
+  input: {
+    flex: 1,
+    height: 50,
+    fontSize: 16,
+  },
+  button: {
+    backgroundColor: '#3B82F6',
+    borderRadius: 12,
+    height: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  buttonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  error: {
+    color: '#EF4444',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  divider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 24,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#E5E7EB',
+  },
+  dividerText: {
+    marginHorizontal: 16,
+    color: '#6B7280',
+  },
+  googleButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 12,
+    height: 50,
+    marginBottom: 24,
+  },
+  googleIcon: {
+    width: 24,
+    height: 24,
+    marginRight: 12,
+  },
+  googleButtonText: {
+    color: '#1F2937',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  footerText: {
+    color: '#6B7280',
+    marginRight: 8,
+  },
+  footerLink: {
+    color: '#3B82F6',
+    fontWeight: '600',
+  },
+}); 

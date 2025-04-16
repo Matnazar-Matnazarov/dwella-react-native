@@ -1,185 +1,179 @@
-import React, { useState, useRef } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Image, ScrollView, KeyboardAvoidingView, Platform, Dimensions } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useLocalSearchParams, router } from 'expo-router';
+import React, { useState } from 'react';
+import { View, Text, ScrollView, StyleSheet, TextInput, TouchableOpacity, Image } from 'react-native';
+import { FontAwesome } from '@expo/vector-icons';
 
-interface Message {
-  id: string;
-  text: string;
-  time: string;
-  sender: 'user' | 'other';
-}
-
-interface ChatUser {
-  id: string;
-  name: string;
-  image: string;
-  online: boolean;
-  lastSeen?: string;
-}
-
-// Sample chat data
-const chatUser: ChatUser = {
-  id: '1',
-  name: 'Aziz Rahimov',
-  image: 'https://randomuser.me/api/portraits/men/32.jpg',
-  online: true
-};
-
-const messages: Message[] = [
+// Mock data for chat messages
+const messages = [
   {
-    id: '1',
-    text: 'Assalomu alaykum, ish haqida gaplashsak bo\'ladimi?',
-    time: '10:30',
-    sender: 'other'
+    id: 1,
+    sender: 'user',
+    message: 'Salom, ish haqida gaplashamizmi?',
+    time: '12:30',
   },
   {
-    id: '2',
-    text: 'Va alaykum assalom, albatta',
-    time: '10:31',
-    sender: 'user'
+    id: 2,
+    sender: 'master',
+    message: 'Salom, albatta. Qanday ish kerak?',
+    time: '12:31',
   },
   {
-    id: '3',
-    text: 'Qachon kelishingiz mumkin?',
-    time: '10:31',
-    sender: 'other'
+    id: 3,
+    sender: 'user',
+    message: 'Uyimda elektr ta\'mirlash ishi bor. Qancha bo\'ladi?',
+    time: '12:32',
   },
   {
-    id: '4',
-    text: 'Men bugun soat 15:00 da bo\'shman',
-    time: '10:32',
-    sender: 'user'
-  }
+    id: 4,
+    sender: 'master',
+    message: 'Ish joyini ko\'ribgina aytish mumkin. Manzilingizni yozing.',
+    time: '12:33',
+  },
 ];
 
-export default function ChatDetailScreen() {
-  const { id } = useLocalSearchParams();
-  const [newMessage, setNewMessage] = useState('');
-  const scrollViewRef = useRef<ScrollView>(null);
-  const windowHeight = Dimensions.get('window').height;
-  const inputHeight = 60;
-  const headerHeight = Platform.OS === 'ios' ? 88 : 64;
-  const contentHeight = windowHeight - inputHeight - headerHeight;
+const master = {
+  id: 1,
+  name: 'Ali Valiyev',
+  avatar: require('../../assets/electrician.jpeg'),
+  isOnline: true,
+};
+
+export default function ChatConversation() {
+  const [message, setMessage] = useState('');
 
   const handleSend = () => {
-    if (newMessage.trim()) {
-      // In real app, send message to backend
-      setNewMessage('');
+    if (message.trim()) {
+      // TODO: Implement message sending logic
+      setMessage('');
     }
   };
 
   return (
-    <KeyboardAvoidingView 
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      className="flex-1 bg-background"
-    >
-      {/* Header */}
-      <View className="bg-white border-b border-border">
-        <View className="flex-row items-center px-4 pt-14 pb-4">
-          <TouchableOpacity 
-            onPress={() => router.back()}
-            className="p-2 -ml-2"
-          >
-            <Ionicons name="arrow-back" size={24} color="#1F2937" />
-          </TouchableOpacity>
-          
-          <TouchableOpacity 
-            className="flex-row items-center flex-1 ml-2"
-            onPress={() => router.push('/master/[id]', { id: chatUser.id })}
-          >
-            <View className="relative">
-              <Image 
-                source={{ uri: chatUser.image }}
-                className="w-10 h-10 rounded-full"
-              />
-              {chatUser.online && (
-                <View className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white" />
-              )}
-            </View>
-            <View className="ml-3 flex-1">
-              <Text className="font-medium text-text">{chatUser.name}</Text>
-              <Text className="text-sm text-secondary">
-                {chatUser.online ? 'Online' : chatUser.lastSeen}
-              </Text>
-            </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity className="p-2">
-            <Ionicons name="call-outline" size={24} color="#1F2937" />
-          </TouchableOpacity>
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <Image source={master.avatar} style={styles.avatar} />
+        <View style={styles.headerInfo}>
+          <Text style={styles.name}>{master.name}</Text>
+          <Text style={styles.status}>Online</Text>
         </View>
       </View>
 
-      {/* Messages */}
-      <ScrollView 
-        ref={scrollViewRef}
-        className="flex-1"
-        contentContainerStyle={{ padding: 16 }}
-        onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: true })}
-      >
-        {messages.map((message) => (
-          <View 
-            key={message.id}
-            className={`flex-row mb-4 ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+      <ScrollView style={styles.messagesContainer}>
+        {messages.map((msg) => (
+          <View
+            key={msg.id}
+            style={[
+              styles.messageContainer,
+              msg.sender === 'user' ? styles.userMessage : styles.masterMessage,
+            ]}
           >
-            {message.sender === 'other' && (
-              <Image 
-                source={{ uri: chatUser.image }}
-                className="w-8 h-8 rounded-full mr-2"
-              />
-            )}
-            <View 
-              className={`px-4 py-2 rounded-2xl max-w-[80%] ${
-                message.sender === 'user' 
-                  ? 'bg-primary rounded-tr-none' 
-                  : 'bg-gray-100 rounded-tl-none'
-              }`}
-            >
-              <Text 
-                className={message.sender === 'user' ? 'text-white' : 'text-text'}
-              >
-                {message.text}
-              </Text>
-              <Text 
-                className={`text-xs mt-1 ${
-                  message.sender === 'user' ? 'text-white/80' : 'text-secondary'
-                }`}
-              >
-                {message.time}
-              </Text>
-            </View>
+            <Text style={styles.messageText}>{msg.message}</Text>
+            <Text style={styles.messageTime}>{msg.time}</Text>
           </View>
         ))}
       </ScrollView>
 
-      {/* Input */}
-      <View className="bg-white border-t border-border p-2">
-        <View className="flex-row items-center bg-gray-100 rounded-full px-4">
-          <TouchableOpacity className="p-2">
-            <Ionicons name="camera-outline" size={24} color="#6B7280" />
-          </TouchableOpacity>
-          <TextInput
-            className="flex-1 py-2 px-3 text-text"
-            placeholder="Xabar yozing..."
-            placeholderTextColor="#9CA3AF"
-            value={newMessage}
-            onChangeText={setNewMessage}
-            multiline
-          />
-          <TouchableOpacity 
-            className={`p-2 ${newMessage.trim() ? 'opacity-100' : 'opacity-50'}`}
-            onPress={handleSend}
-            disabled={!newMessage.trim()}
-          >
-            <Ionicons 
-              name="send" 
-              size={24} 
-              color="#4F46E5"
-            />
-          </TouchableOpacity>
-        </View>
+      <View style={styles.inputContainer}>
+        <TouchableOpacity style={styles.attachmentButton}>
+          <FontAwesome name="paperclip" size={24} color="#6B7280" />
+        </TouchableOpacity>
+        <TextInput
+          style={styles.input}
+          placeholder="Xabar yozing..."
+          value={message}
+          onChangeText={setMessage}
+          multiline
+        />
+        <TouchableOpacity style={styles.sendButton} onPress={handleSend}>
+          <FontAwesome name="send" size={24} color="#FFFFFF" />
+        </TouchableOpacity>
       </View>
-    </KeyboardAvoidingView>
+    </View>
   );
-} 
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
+  avatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginRight: 12,
+  },
+  headerInfo: {
+    flex: 1,
+  },
+  name: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1F2937',
+  },
+  status: {
+    fontSize: 12,
+    color: '#6B7280',
+  },
+  messagesContainer: {
+    flex: 1,
+    padding: 16,
+  },
+  messageContainer: {
+    maxWidth: '80%',
+    marginBottom: 16,
+    padding: 12,
+    borderRadius: 12,
+  },
+  userMessage: {
+    alignSelf: 'flex-end',
+    backgroundColor: '#3B82F6',
+  },
+  masterMessage: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#F3F4F6',
+  },
+  messageText: {
+    fontSize: 14,
+    color: '#1F2937',
+    marginBottom: 4,
+  },
+  messageTime: {
+    fontSize: 10,
+    color: '#6B7280',
+    alignSelf: 'flex-end',
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
+  },
+  attachmentButton: {
+    marginRight: 12,
+  },
+  input: {
+    flex: 1,
+    backgroundColor: '#F3F4F6',
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    maxHeight: 100,
+  },
+  sendButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#3B82F6',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 12,
+  },
+}); 

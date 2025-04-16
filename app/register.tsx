@@ -1,170 +1,245 @@
-// app/register.tsx
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Image, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import { FontAwesome } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import * as Google from 'expo-auth-session/providers/google';
+import * as WebBrowser from 'expo-web-browser';
 
-export default function RegisterScreen() {
-  const [fullName, setFullName] = useState('');
+WebBrowser.maybeCompleteAuthSession();
+
+export default function Register() {
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleRegister = async () => {
-    if (password !== confirmPassword) {
-      // Show error message
+  const [request, response, promptAsync] = Google.useAuthRequest({
+    expoClientId: 'YOUR_GOOGLE_CLIENT_ID',
+    iosClientId: 'YOUR_GOOGLE_IOS_CLIENT_ID',
+    androidClientId: 'YOUR_GOOGLE_ANDROID_CLIENT_ID',
+  });
+
+  React.useEffect(() => {
+    if (response?.type === 'success') {
+      const { authentication } = response;
+      // Handle successful Google authentication
+      console.log('Google auth success:', authentication);
+      router.replace('/(tabs)');
+    }
+  }, [response]);
+
+  const handleRegister = () => {
+    if (!name || !email || !password || !confirmPassword) {
+      setError('Iltimos, barcha maydonlarni to\'ldiring');
       return;
     }
-
-    setLoading(true);
-    try {
-      // Implement email registration logic here
-      // 1. Create user account
-      // 2. Send verification email
-      // 3. Show verification message
-      router.push('/verify-email');
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
+    if (password !== confirmPassword) {
+      setError('Parollar mos kelmadi');
+      return;
     }
-  };
-
-  const handleGoogleSignUp = async () => {
-    try {
-      // Implement Google sign up logic here
-      router.replace('/(tabs)');
-    } catch (error) {
-      console.error(error);
-    }
+    // TODO: Implement registration logic
+    router.replace('/(tabs)');
   };
 
   return (
-    <KeyboardAvoidingView 
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      className="flex-1 bg-background"
-    >
-      <ScrollView className="flex-1" contentContainerStyle={{ flexGrow: 1 }}>
-        {/* Logo and Header */}
-        <View className="items-center pt-16 pb-8">
-          <View className="w-20 h-20 bg-primary/10 rounded-2xl items-center justify-center mb-4">
-            <Ionicons name="home" size={40} color="#4F46E5" />
-          </View>
-          <Text className="text-3xl font-bold text-text mb-2">Dwella</Text>
-          <Text className="text-base text-secondary">Ro'yxatdan o'tish</Text>
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <Image source={require('../assets/constructor_avatar.jpeg')} style={styles.logo} />
+        <Text style={styles.title}>Dwella</Text>
+        <Text style={styles.subtitle}>Ustalar va mijozlar uchun platforma</Text>
+      </View>
+
+      <View style={styles.form}>
+        {error ? <Text style={styles.error}>{error}</Text> : null}
+        
+        <View style={styles.inputContainer}>
+          <FontAwesome name="user" size={20} color="#6B7280" style={styles.inputIcon} />
+          <TextInput
+            style={styles.input}
+            placeholder="Ism"
+            value={name}
+            onChangeText={setName}
+          />
         </View>
 
-        {/* Registration Form */}
-        <View className="px-4 pt-6">
-          <View className="mb-4">
-            <Text className="text-sm font-medium text-text mb-1">To'liq ism</Text>
-            <TextInput
-              className="border border-border rounded-lg p-4 bg-card text-text"
-              placeholder="To'liq ismingizni kiriting"
-              placeholderTextColor="#9CA3AF"
-              value={fullName}
-              onChangeText={setFullName}
-            />
-          </View>
-
-          <View className="mb-4">
-            <Text className="text-sm font-medium text-text mb-1">Email</Text>
-            <TextInput
-              className="border border-border rounded-lg p-4 bg-card text-text"
-              placeholder="Email manzilingizni kiriting"
-              placeholderTextColor="#9CA3AF"
-              keyboardType="email-address"
-              autoCapitalize="none"
-              value={email}
-              onChangeText={setEmail}
-            />
-          </View>
-
-          <View className="mb-4">
-            <Text className="text-sm font-medium text-text mb-1">Parol</Text>
-            <View className="relative">
-              <TextInput
-                className="border border-border rounded-lg p-4 bg-card text-text pr-12"
-                placeholder="Parol yarating"
-                placeholderTextColor="#9CA3AF"
-                secureTextEntry={!showPassword}
-                value={password}
-                onChangeText={setPassword}
-              />
-              <TouchableOpacity 
-                className="absolute right-4 top-4"
-                onPress={() => setShowPassword(!showPassword)}
-              >
-                <Ionicons 
-                  name={showPassword ? "eye-off-outline" : "eye-outline"} 
-                  size={24} 
-                  color="#6B7280" 
-                />
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          <View className="mb-6">
-            <Text className="text-sm font-medium text-text mb-1">Parolni tasdiqlash</Text>
-            <View className="relative">
-              <TextInput
-                className="border border-border rounded-lg p-4 bg-card text-text pr-12"
-                placeholder="Parolni qayta kiriting"
-                placeholderTextColor="#9CA3AF"
-                secureTextEntry={!showPassword}
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-              />
-              <TouchableOpacity 
-                className="absolute right-4 top-4"
-                onPress={() => setShowPassword(!showPassword)}
-              >
-                <Ionicons 
-                  name={showPassword ? "eye-off-outline" : "eye-outline"} 
-                  size={24} 
-                  color="#6B7280" 
-                />
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          <TouchableOpacity 
-            className="bg-primary rounded-lg p-4 items-center shadow-sm mb-4"
-            onPress={handleRegister}
-            disabled={loading}
-          >
-            <Text className="text-white font-medium text-lg">
-              {loading ? 'Ro\'yxatdan o\'tilmoqda...' : 'Ro\'yxatdan o\'tish'}
-            </Text>
-          </TouchableOpacity>
-
-          <View className="flex-row items-center mb-6">
-            <View className="flex-1 h-[1px] bg-border" />
-            <Text className="text-secondary mx-4">yoki</Text>
-            <View className="flex-1 h-[1px] bg-border" />
-          </View>
-
-          <TouchableOpacity 
-            className="bg-white border border-border rounded-lg p-4 flex-row items-center justify-center shadow-sm mb-6"
-            onPress={handleGoogleSignUp}
-          >
-            <Image 
-              source={{ uri: 'https://www.google.com/favicon.ico' }}
-              className="w-5 h-5 mr-3"
-            />
-            <Text className="text-text font-medium">Google orqali ro'yxatdan o'tish</Text>
-          </TouchableOpacity>
-
-          <View className="flex-row justify-center mb-6">
-            <Text className="text-secondary">Hisobingiz bormi? </Text>
-            <TouchableOpacity onPress={() => router.push('/login')}>
-              <Text className="text-primary font-medium">Kirish</Text>
-            </TouchableOpacity>
-          </View>
+        <View style={styles.inputContainer}>
+          <FontAwesome name="envelope" size={20} color="#6B7280" style={styles.inputIcon} />
+          <TextInput
+            style={styles.input}
+            placeholder="Email"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
         </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+
+        <View style={styles.inputContainer}>
+          <FontAwesome name="lock" size={20} color="#6B7280" style={styles.inputIcon} />
+          <TextInput
+            style={styles.input}
+            placeholder="Parol"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+          />
+        </View>
+
+        <View style={styles.inputContainer}>
+          <FontAwesome name="lock" size={20} color="#6B7280" style={styles.inputIcon} />
+          <TextInput
+            style={styles.input}
+            placeholder="Parolni tasdiqlang"
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+            secureTextEntry
+          />
+        </View>
+
+        <TouchableOpacity style={styles.button} onPress={handleRegister}>
+          <Text style={styles.buttonText}>Ro'yxatdan o'tish</Text>
+        </TouchableOpacity>
+
+        <View style={styles.divider}>
+          <View style={styles.dividerLine} />
+          <Text style={styles.dividerText}>yoki</Text>
+          <View style={styles.dividerLine} />
+        </View>
+
+        <TouchableOpacity 
+          style={styles.googleButton}
+          onPress={() => promptAsync()}
+          disabled={!request}
+        >
+          <Image 
+            source={require('../assets/constructor_avatar.jpeg')} 
+            style={styles.googleIcon} 
+          />
+          <Text style={styles.googleButtonText}>Google orqali ro'yxatdan o'tish</Text>
+        </TouchableOpacity>
+
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>Akkauntingiz bormi?</Text>
+          <TouchableOpacity onPress={() => router.push('/login')}>
+            <Text style={styles.footerLink}>Kirish</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    padding: 20,
+  },
+  header: {
+    alignItems: 'center',
+    marginTop: 40,
+    marginBottom: 40,
+  },
+  logo: {
+    width: 80,
+    height: 80,
+    marginBottom: 16,
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#1F2937',
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#6B7280',
+    textAlign: 'center',
+  },
+  form: {
+    width: '100%',
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F3F4F6',
+    borderRadius: 12,
+    marginBottom: 16,
+    paddingHorizontal: 16,
+  },
+  inputIcon: {
+    marginRight: 12,
+  },
+  input: {
+    flex: 1,
+    height: 50,
+    fontSize: 16,
+  },
+  button: {
+    backgroundColor: '#3B82F6',
+    borderRadius: 12,
+    height: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  buttonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  error: {
+    color: '#EF4444',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  divider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 24,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#E5E7EB',
+  },
+  dividerText: {
+    marginHorizontal: 16,
+    color: '#6B7280',
+  },
+  googleButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 12,
+    height: 50,
+    marginBottom: 24,
+  },
+  googleIcon: {
+    width: 24,
+    height: 24,
+    marginRight: 12,
+  },
+  googleButtonText: {
+    color: '#1F2937',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  footerText: {
+    color: '#6B7280',
+    marginRight: 8,
+  },
+  footerLink: {
+    color: '#3B82F6',
+    fontWeight: '600',
+  },
+}); 

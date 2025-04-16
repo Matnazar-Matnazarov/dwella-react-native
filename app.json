@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "dwella",
-    "slug": "dwella",
+    "name": "dwella-project-expo",
+    "slug": "dwella-project-expo",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",

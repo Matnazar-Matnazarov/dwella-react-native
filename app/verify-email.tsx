@@ -1,65 +1,101 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import React, { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import { router } from 'expo-router';
 
-export default function VerifyEmailScreen() {
-  const [timer, setTimer] = useState(60);
-  const [canResend, setCanResend] = useState(false);
+export default function VerifyEmail() {
+  const [verificationCode, setVerificationCode] = useState('');
 
-  useEffect(() => {
-    if (timer > 0) {
-      const interval = setInterval(() => {
-        setTimer((prev) => prev - 1);
-      }, 1000);
-      return () => clearInterval(interval);
-    } else {
-      setCanResend(true);
-    }
-  }, [timer]);
+  const handleVerify = () => {
+    // TODO: Implement verification logic
+    router.replace('/(tabs)');
+  };
 
-  const handleResendEmail = () => {
-    // Implement resend verification email logic here
-    setTimer(60);
-    setCanResend(false);
+  const handleResendCode = () => {
+    // TODO: Implement resend code logic
   };
 
   return (
-    <View className="flex-1 bg-background px-4">
-      <View className="items-center pt-20">
-        <View className="w-24 h-24 bg-primary/10 rounded-full items-center justify-center mb-6">
-          <Ionicons name="mail" size={48} color="#4F46E5" />
+    <View style={styles.container}>
+      <View style={styles.content}>
+        <Text style={styles.title}>Email tasdiqlash</Text>
+        <Text style={styles.subtitle}>
+          Email manzilingizga yuborilgan tasdiqlash kodini kiriting
+        </Text>
+
+        <View style={styles.formContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="Tasdiqlash kodi"
+            value={verificationCode}
+            onChangeText={setVerificationCode}
+            keyboardType="number-pad"
+            maxLength={6}
+          />
+
+          <TouchableOpacity style={styles.verifyButton} onPress={handleVerify}>
+            <Text style={styles.verifyButtonText}>Tasdiqlash</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.resendButton} onPress={handleResendCode}>
+            <Text style={styles.resendButtonText}>Kodni qayta yuborish</Text>
+          </TouchableOpacity>
         </View>
-        
-        <Text className="text-2xl font-bold text-text mb-2">
-          Email manzilingizni tasdiqlang
-        </Text>
-        
-        <Text className="text-base text-secondary text-center mb-8">
-          Biz sizning email manzilingizga tasdiqlash havolasini yubordik. Iltimos, emailingizni tekshiring va havolani bosing.
-        </Text>
-
-        <TouchableOpacity 
-          className={`w-full rounded-lg p-4 items-center shadow-sm mb-4 ${
-            canResend ? 'bg-primary' : 'bg-gray-200'
-          }`}
-          onPress={handleResendEmail}
-          disabled={!canResend}
-        >
-          <Text className={`font-medium text-lg ${
-            canResend ? 'text-white' : 'text-gray-500'
-          }`}>
-            {canResend ? 'Qayta yuborish' : `Qayta yuborish (${timer}s)`}
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity 
-          className="mt-4"
-          onPress={() => router.back()}
-        >
-          <Text className="text-primary">Orqaga qaytish</Text>
-        </TouchableOpacity>
       </View>
     </View>
   );
-} 
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
+  content: {
+    padding: 20,
+    marginTop: 60,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#1F2937',
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#6B7280',
+    marginBottom: 32,
+  },
+  formContainer: {
+    marginTop: 20,
+  },
+  input: {
+    backgroundColor: '#F3F4F6',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    fontSize: 16,
+    textAlign: 'center',
+    letterSpacing: 8,
+  },
+  verifyButton: {
+    backgroundColor: '#3B82F6',
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  verifyButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  resendButton: {
+    marginTop: 20,
+    alignItems: 'center',
+  },
+  resendButtonText: {
+    color: '#3B82F6',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+}); 

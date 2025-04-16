@@ -1,221 +1,239 @@
 import React, { useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Image, TextInput, ScrollView } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Image } from 'react-native';
+import { FontAwesome } from '@expo/vector-icons';
 import { router } from 'expo-router';
 
-// Define types for job listings
-interface JobListing {
-  id: string;
-  title: string;
-  description: string;
-  budget: string;
-  location: string;
-  category: string;
-  postedTime: string;
-  image: string;
-  isActive: boolean;
-}
-
-// Define type for categories
-interface Category {
-  id: string;
-  name: string;
-  icon: string;
-}
-
-// Categories for filtering
-const categories: Category[] = [
-  { id: 'all', name: 'Barchasi', icon: 'grid-outline' },
-  { id: 'santexnik', name: 'Santexnik', icon: 'water-outline' },
-  { id: 'elektrik', name: 'Elektrik', icon: 'flash-outline' },
-  { id: 'duradgor', name: 'Duradgor', icon: 'hammer-outline' },
-  { id: 'dizayner', name: 'Dizayner', icon: 'color-palette-outline' },
-  { id: 'plastik', name: 'Plastik oyna', icon: 'window-outline' }
+// Mock data for categories
+const categories = [
+  { id: 1, name: 'Barchasi', icon: 'th-large' },
+  { id: 2, name: 'Elektr', icon: 'bolt' },
+  { id: 3, name: 'Santexnika', icon: 'tint' },
+  { id: 4, name: 'Qurilish', icon: 'building' },
+  { id: 5, name: 'Tamirlash', icon: 'wrench' },
+  { id: 6, name: 'Dizayn', icon: 'paint-brush' },
 ];
 
-// Sample job listings data
-const jobListings: JobListing[] = [
+// Mock data for announcements
+const announcements = [
   {
-    id: '1',
-    title: 'Santexnik kerak',
-    description: 'Kvartiraga santexnik kerak. Suv oqimi bilan bog\'liq muammo bor.',
-    budget: '500,000',
-    location: 'Tashkent, Chilonzor',
-    category: 'santexnik',
-    postedTime: '2 soat oldin',
-    image: 'https://images.unsplash.com/photo-1581093458791-9f3c3250a8b7?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
-    isActive: true
+    id: 1,
+    title: 'Elektr ishlari',
+    description: 'Barcha turdagi elektr ishlari bajariladi',
+    price: '500 000 so\'m',
+    category: 'Elektr',
+    image: require('../../assets/electrician.jpeg'),
   },
   {
-    id: '2',
-    title: 'Elektrik ish',
-    description: 'Ofis binosida elektr tarmog\'ini yangilash kerak.',
-    budget: '1,200,000',
-    location: 'Tashkent, Mirzo-Ulug\'bek',
-    category: 'elektrik',
-    postedTime: '5 soat oldin',
-    image: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
-    isActive: true
+    id: 2,
+    title: 'Santexnika ishlari',
+    description: 'Santexnika ishlari bajariladi',
+    price: '400 000 so\'m',
+    category: 'Santexnika',
+    image: require('../../assets/plumber.jpeg'),
   },
   {
-    id: '3',
-    title: 'Duradgor ish',
-    description: 'Xonani ta\'mirlash kerak. Devorlarni oqish va shiftni ta\'mirlash.',
-    budget: '800,000',
-    location: 'Tashkent, Yakkasaroy',
-    category: 'duradgor',
-    postedTime: '1 kun oldin',
-    image: 'https://images.unsplash.com/photo-1584622650111-9938b6c7d1d0?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
-    isActive: true
+    id: 3,
+    title: 'Qurilish ishlari',
+    description: 'Qurilish ishlari bajariladi',
+    price: '600 000 so\'m',
+    category: 'Qurilish',
+    image: require('../../assets/constructor_avatar.jpeg'),
   },
-  {
-    id: '4',
-    title: 'Dizayner kerak',
-    description: 'Kvartira interyerini loyihalash kerak. 3 xonali kvartira.',
-    budget: '2,500,000',
-    location: 'Tashkent, Yunusobod',
-    category: 'dizayner',
-    postedTime: '2 kun oldin',
-    image: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
-    isActive: true
-  },
-  {
-    id: '5',
-    title: 'Plastik oyna o\'rnatish',
-    description: '3 xonali kvartira uchun plastik oynalarni o\'rnatish kerak.',
-    budget: '3,000,000',
-    location: 'Tashkent, Mirobod',
-    category: 'plastik',
-    postedTime: '3 kun oldin',
-    image: 'https://images.unsplash.com/photo-1584622650111-9938b6c7d1d0?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
-    isActive: true
-  }
 ];
 
-export default function ExploreScreen() {
+export default function Explore() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  
-  const filteredJobs = jobListings.filter(job => {
-    const matchesSearch = job.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                         job.description.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === 'all' || job.category === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
+  const [selectedCategory, setSelectedCategory] = useState('Barchasi');
+  const [filteredAnnouncements, setFilteredAnnouncements] = useState(announcements);
 
-  const renderJobItem = ({ item }: { item: JobListing }) => (
-    <TouchableOpacity 
-      className="bg-white rounded-lg shadow-sm border border-border mb-4 overflow-hidden"
-      onPress={() => router.push({
-        pathname: '/[id]',
-        params: { id: item.id }
-      })}
-    >
-      <View className="flex-row">
-        <View className="w-1/3">
-          <Image 
-            source={{ uri: item.image }} 
-            className="w-full h-full"
-            resizeMode="cover"
-          />
-        </View>
-        <View className="w-2/3 p-3">
-          <View className="flex-row items-center justify-between mb-1">
-            <Text className="text-lg font-semibold text-text" numberOfLines={1}>{item.title}</Text>
-            <View className={`px-2 py-1 rounded ${item.isActive ? 'bg-green-100' : 'bg-gray-100'}`}>
-              <Text className={`text-xs ${item.isActive ? 'text-green-600' : 'text-gray-600'}`}>
-                {item.isActive ? 'Faol' : 'Yakunlangan'}
-              </Text>
-            </View>
-          </View>
-          <Text className="text-sm text-secondary mb-2" numberOfLines={2}>{item.description}</Text>
-          <View className="flex-row items-center mb-1">
-            <Ionicons name="cash-outline" size={16} color="#6B7280" />
-            <Text className="text-sm text-secondary ml-1">{item.budget} so'm</Text>
-          </View>
-          <View className="flex-row items-center">
-            <Ionicons name="location-outline" size={16} color="#6B7280" />
-            <Text className="text-sm text-secondary ml-1">{item.location}</Text>
-          </View>
-        </View>
-      </View>
-      <View className="flex-row justify-between items-center p-3 bg-background border-t border-border">
-        <View className="bg-primary/10 px-2 py-1 rounded">
-          <Text className="text-xs text-primary">{item.category}</Text>
-        </View>
-        <Text className="text-xs text-secondary">{item.postedTime}</Text>
-      </View>
-    </TouchableOpacity>
-  );
+  const handleSearch = (text: string) => {
+    setSearchQuery(text);
+    filterAnnouncements(text, selectedCategory);
+  };
+
+  const handleCategorySelect = (category: string) => {
+    setSelectedCategory(category);
+    filterAnnouncements(searchQuery, category);
+  };
+
+  const filterAnnouncements = (query: string, category: string) => {
+    let filtered = announcements;
+    
+    if (query) {
+      filtered = filtered.filter(
+        (announcement) =>
+          announcement.title.toLowerCase().includes(query.toLowerCase()) ||
+          announcement.description.toLowerCase().includes(query.toLowerCase())
+      );
+    }
+    
+    if (category !== 'Barchasi') {
+      filtered = filtered.filter(
+        (announcement) => announcement.category === category
+      );
+    }
+    
+    setFilteredAnnouncements(filtered);
+  };
 
   return (
-    <View className="flex-1 bg-background">
-      <View className="p-4">
-        <View className="flex-row justify-between items-center mb-4">
-          <View>
-            <Text className="text-2xl font-bold text-text mb-1">E'lonlar</Text>
-            <Text className="text-base text-secondary">Ustalar va mijozlar uchun e'lonlar</Text>
-          </View>
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <View style={styles.searchContainer}>
+          <FontAwesome name="search" size={20} color="#6B7280" style={styles.searchIcon} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Qidirish..."
+            value={searchQuery}
+            onChangeText={handleSearch}
+          />
         </View>
-        
-        <View className="mb-4">
-          <View className="flex-row items-center border border-border rounded-lg bg-white px-3">
-            <Ionicons name="search-outline" size={20} color="#6B7280" />
-            <TextInput
-              className="flex-1 p-3 text-text"
-              placeholder="E'lonlarni qidirish"
-              placeholderTextColor="#9CA3AF"
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-            />
-          </View>
-        </View>
-        
-        <View className="mb-4">
-          <Text className="text-sm font-medium text-text mb-2">Kategoriyalar</Text>
-          <ScrollView 
-            horizontal 
-            showsHorizontalScrollIndicator={false}
-            className="flex-row"
-          >
-            {categories.map(category => (
-              <TouchableOpacity 
-                key={category.id}
-                className={`mr-2 px-3 py-1 rounded-full flex-row items-center ${
-                  selectedCategory === category.id 
-                    ? 'bg-primary' 
-                    : 'bg-white border border-border'
-                }`}
-                onPress={() => setSelectedCategory(category.id)}
-              >
-                <Ionicons 
-                  name={category.icon as any} 
-                  size={16} 
-                  color={selectedCategory === category.id ? '#FFFFFF' : '#6B7280'} 
-                  style={{ marginRight: 4 }}
-                />
-                <Text 
-                  className={`text-sm ${
-                    selectedCategory === category.id 
-                      ? 'text-white' 
-                      : 'text-secondary'
-                  }`}
-                >
-                  {category.name}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
-        
-        <FlatList
-          data={filteredJobs}
-          renderItem={renderJobItem}
-          keyExtractor={(item) => item.id}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 20 }}
-        />
       </View>
+
+      <ScrollView 
+        horizontal 
+        showsHorizontalScrollIndicator={false}
+        style={styles.categoriesContainer}
+      >
+        {categories.map((category) => (
+          <TouchableOpacity
+            key={category.id}
+            style={[
+              styles.categoryButton,
+              selectedCategory === category.name && styles.selectedCategory,
+            ]}
+            onPress={() => handleCategorySelect(category.name)}
+          >
+            <Text 
+              style={[
+                styles.categoryText,
+                selectedCategory === category.name && styles.selectedCategoryText,
+              ]}
+            >
+              {category.name}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+
+      <ScrollView style={styles.announcementsContainer}>
+        {filteredAnnouncements.map((announcement) => (
+          <TouchableOpacity 
+            key={announcement.id} 
+            style={styles.announcementCard}
+            onPress={() => router.push(`/${announcement.id}`)}
+          >
+            <Image source={announcement.image} style={styles.announcementImage} />
+            <View style={styles.announcementInfo}>
+              <Text style={styles.announcementTitle}>{announcement.title}</Text>
+              <Text style={styles.announcementDescription} numberOfLines={2}>
+                {announcement.description}
+              </Text>
+              <View style={styles.announcementFooter}>
+                <Text style={styles.announcementPrice}>{announcement.price}</Text>
+                <Text style={styles.announcementCategory}>{announcement.category}</Text>
+              </View>
+            </View>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
+  header: {
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F3F4F6',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+  },
+  searchIcon: {
+    marginRight: 12,
+  },
+  searchInput: {
+    flex: 1,
+    height: 50,
+    fontSize: 16,
+  },
+  categoriesContainer: {
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+    maxHeight: 75,
+    marginRight: 16,
+  },
+  categoryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F3F4F6',
+    borderRadius: 12,
+    padding: 8,
+    marginRight: 12,
+  },
+  selectedCategory: {
+    backgroundColor: '#3B82F6',
+  },
+  categoryText: {
+    marginLeft: 8,
+    color: '#6B7280',
+    fontWeight: '600',
+  },
+  selectedCategoryText: {
+    color: '#FFFFFF',
+  },
+  announcementsContainer: {
+    flex: 1,
+    padding: 16,
+  },
+  announcementCard: {
+    flexDirection: 'row',
+    backgroundColor: '#F3F4F6',
+    borderRadius: 12,
+    marginBottom: 16,
+    overflow: 'hidden',
+  },
+  announcementImage: {
+    width: 100,
+    height: 100,
+  },
+  announcementInfo: {
+    flex: 1,
+    padding: 12,
+  },
+  announcementTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1F2937',
+    marginBottom: 4,
+  },
+  announcementDescription: {
+    fontSize: 14,
+    color: '#6B7280',
+    marginBottom: 8,
+  },
+  announcementFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  announcementPrice: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#3B82F6',
+  },
+  announcementCategory: {
+    fontSize: 14,
+    color: '#6B7280',
+  },
+});

@@ -1,186 +1,247 @@
-// app/(tabs)/masters.tsx
 import React, { useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, TextInput, Image, ScrollView } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { FontAwesome } from '@expo/vector-icons';
 import { router } from 'expo-router';
 
-interface Master {
-  id: string;
-  name: string;
-  specialty: string;
-  rating: number;
-  reviews: number;
-  image: string;
-  completedJobs: number;
-  location: string;
-  isAvailable: boolean;
-}
-
-const mastersData: Master[] = [
-  {
-    id: '1',
-    name: 'Aziz Rahimov',
-    specialty: 'Santexnik',
-    rating: 4.8,
-    reviews: 120,
-    image: 'https://randomuser.me/api/portraits/men/32.jpg',
-    completedJobs: 85,
-    location: 'Tashkent, Chilonzor',
-    isAvailable: true
-  },
-  {
-    id: '2',
-    name: 'Jamshid Karimov',
-    specialty: 'Elektrik',
-    rating: 4.9,
-    reviews: 95,
-    image: 'https://randomuser.me/api/portraits/men/33.jpg',
-    completedJobs: 65,
-    location: 'Tashkent, Mirzo-Ulug\'bek',
-    isAvailable: true
-  },
-  {
-    id: '3',
-    name: 'Dilnoza Rahimova',
-    specialty: 'Dizayner',
-    rating: 4.7,
-    reviews: 75,
-    image: 'https://randomuser.me/api/portraits/women/32.jpg',
-    completedJobs: 45,
-    location: 'Tashkent, Yunusobod',
-    isAvailable: false
-  }
+// Mock data for categories
+const categories = [
+  { id: 1, name: 'Barchasi', icon: 'th-large' },
+  { id: 2, name: 'Elektr', icon: 'bolt' },
+  { id: 3, name: 'Santexnika', icon: 'tint' },
+  { id: 4, name: 'Qurilish', icon: 'building' },
+  { id: 5, name: 'Tamirlash', icon: 'wrench' },
+  { id: 6, name: 'Dizayn', icon: 'paint-brush' },
 ];
 
-export default function MastersScreen() {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('barchasi');
+// Mock data for masters
+const masters = [
+  {
+    id: 1,
+    name: 'Ali Valiyev',
+    category: 'Elektr',
+    rating: 4.8,
+    reviews: 124,
+    experience: '5 yil',
+    price: '500 000 so\'m',
+    image: require('../../assets/electrician.jpeg'),
+  },
+  {
+    id: 2,
+    name: 'Hasan Hasanov',
+    category: 'Santexnika',
+    rating: 4.7,
+    reviews: 98,
+    experience: '3 yil',
+    price: '400 000 so\'m',
+    image: require('../../assets/plumber.jpeg'),
+  },
+  {
+    id: 3,
+    name: 'Shavkat Rahimov',
+    category: 'Qurilish',
+    rating: 4.9,
+    reviews: 156,
+    experience: '7 yil',
+    price: '600 000 so\'m',
+    image: require('../../assets/constructor_avatar.jpeg'),
+  },
+];
 
-  const categories = [
-    { id: 'barchasi', name: 'Barchasi', icon: 'grid-outline', color: '#4F46E5' },
-    { id: 'santexnik', name: 'Santexnik', icon: 'build-outline', color: '#3B82F6' },
-    { id: 'elektrik', name: 'Elektrik', icon: 'flash-outline', color: '#F59E0B' },
-    { id: 'dizayner', name: 'Dizayner', icon: 'color-palette-outline', color: '#EC4899' },
-    { id: 'duradgor', name: 'Duradgor', icon: 'hammer-outline', color: '#10B981' }
-  ];
+export default function Masters() {
+  const [selectedCategory, setSelectedCategory] = useState('Barchasi');
+  const [filteredMasters, setFilteredMasters] = useState(masters);
 
-  const filteredMasters = mastersData.filter(master => {
-    const matchesSearch = master.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         master.specialty.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === 'barchasi' || 
-                          master.specialty.toLowerCase() === selectedCategory.toLowerCase();
-    return matchesSearch && matchesCategory;
-  });
+  const handleCategorySelect = (category: string) => {
+    setSelectedCategory(category);
+    filterMasters(category);
+  };
 
-  const renderMasterItem = ({ item }: { item: Master }) => (
-    <TouchableOpacity 
-      className="bg-white rounded-xl mb-3 overflow-hidden border border-border"
-      onPress={() => router.push({
-        pathname: '/master/[id]',
-        params: { id: item.id }
-      })}
-    >
-      <View className="p-4">
-        <View className="flex-row items-center">
-          <View className="relative">
-            <Image 
-              source={{ uri: item.image }}
-              className="w-16 h-16 rounded-full"
-            />
-            {item.isAvailable && (
-              <View className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 rounded-full border-2 border-white" />
-            )}
-          </View>
-          <View className="flex-1 ml-3">
-            <View className="flex-row items-center justify-between mb-1">
-              <Text className="text-lg font-semibold text-text">{item.name}</Text>
-              <View className={`px-2 py-1 rounded-full ${item.isAvailable ? 'bg-green-100' : 'bg-gray-100'}`}>
-                <Text className={`text-xs font-medium ${item.isAvailable ? 'text-green-600' : 'text-gray-600'}`}>
-                  {item.isAvailable ? 'Mavjud' : 'Band'}
-                </Text>
-              </View>
-            </View>
-            <Text className="text-secondary text-sm mb-1">{item.specialty}</Text>
-            <View className="flex-row items-center">
-              <Ionicons name="star" size={14} color="#FBBF24" />
-              <Text className="text-secondary text-sm ml-1">{item.rating} ({item.reviews} sharh)</Text>
-            </View>
-          </View>
-        </View>
-        <View className="flex-row items-center justify-between mt-3 pt-3 border-t border-gray-100">
-          <View className="flex-row items-center">
-            <Ionicons name="briefcase-outline" size={14} color="#6B7280" />
-            <Text className="text-secondary text-sm ml-1">{item.completedJobs} ta ish</Text>
-          </View>
-          <View className="flex-row items-center">
-            <Ionicons name="location-outline" size={14} color="#6B7280" />
-            <Text className="text-secondary text-sm ml-1">{item.location}</Text>
-          </View>
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
+  const filterMasters = (category: string) => {
+    if (category === 'Barchasi') {
+      setFilteredMasters(masters);
+    } else {
+      const filtered = masters.filter((master) => master.category === category);
+      setFilteredMasters(filtered);
+    }
+  };
 
   return (
-    <View className="flex-1 bg-background">
-      <View className="px-4">
-        <View className="mb-4">
-          <View className="flex-row items-center bg-white rounded-xl px-3 border border-border">
-            <Ionicons name="search-outline" size={20} color="#6B7280" />
-            <TextInput
-              className="flex-1 py-3 px-2 text-text"
-              placeholder="Usta yoki kasb bo'yicha qidirish"
-              placeholderTextColor="#9CA3AF"
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-            />
-          </View>
-        </View>
-
-        <View className="mb-4">
-          <ScrollView 
-            horizontal 
-            showsHorizontalScrollIndicator={false}
-            className="flex-row"
-          >
-            {categories.map(category => (
-              <TouchableOpacity
-                key={category.id}
-                className={`mr-2 px-4 py-2 rounded-full flex-row items-center ${
-                  selectedCategory === category.id 
-                    ? 'bg-primary' 
-                    : 'bg-white border border-border'
-                }`}
-                onPress={() => setSelectedCategory(category.id)}
-              >
-                <Ionicons 
-                  name={category.icon as any} 
-                  size={18} 
-                  color={selectedCategory === category.id ? '#FFFFFF' : category.color} 
-                />
-                <Text 
-                  className={`text-sm font-medium ml-2 ${
-                    selectedCategory === category.id 
-                      ? 'text-white' 
-                      : 'text-secondary'
-                  }`}
-                >
-                  {category.name}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
-
-        <FlatList
-          data={filteredMasters}
-          renderItem={renderMasterItem}
-          keyExtractor={item => item.id}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 100 }}
-        />
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.title}>Ustalar</Text>
+        <TouchableOpacity 
+          style={styles.filterButton}
+          onPress={() => {
+            // TODO: Implement advanced filter modal
+          }}
+        >
+          <FontAwesome name="filter" size={20} color="#1F2937" />
+        </TouchableOpacity>
       </View>
+
+      <ScrollView 
+        horizontal 
+        showsHorizontalScrollIndicator={false}
+        style={styles.categoriesContainer}
+      >
+        {categories.map((category) => (
+          <TouchableOpacity
+            key={category.id}
+            style={[
+              styles.categoryButton,
+              selectedCategory === category.name && styles.selectedCategory,
+            ]}
+            onPress={() => handleCategorySelect(category.name)}
+          >
+            <Text 
+              style={[
+                styles.categoryText,
+                selectedCategory === category.name && styles.selectedCategoryText,
+              ]}
+            >
+              {category.name}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+
+      <ScrollView style={styles.mastersContainer}>
+        {filteredMasters.map((master) => (
+          <TouchableOpacity 
+            key={master.id} 
+            style={styles.masterCard}
+            onPress={() => router.push(`/master/${master.id}`)}
+          >
+            <Image source={master.image} style={styles.masterImage} />
+            <View style={styles.masterInfo}>
+              <Text style={styles.masterName}>{master.name}</Text>
+              <Text style={styles.masterCategory}>{master.category}</Text>
+              <View style={styles.ratingContainer}>
+                <FontAwesome name="star" size={16} color="#F59E0B" />
+                <Text style={styles.ratingText}>{master.rating}</Text>
+                <Text style={styles.reviewsText}>({master.reviews} baho)</Text>
+              </View>
+              <View style={styles.detailsContainer}>
+                <View style={styles.detailItem}>
+                  <FontAwesome name="briefcase" size={16} color="#6B7280" />
+                  <Text style={styles.detailText}>{master.experience}</Text>
+                </View>
+                <View style={styles.detailItem}>
+                  <FontAwesome name="money" size={16} color="#6B7280" />
+                  <Text style={styles.detailText}>{master.price}</Text>
+                </View>
+              </View>
+            </View>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
     </View>
   );
 }
 
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#1F2937',
+  },
+  filterButton: {
+    padding: 8,
+  },
+  categoriesContainer: {
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+    maxHeight: 75,
+  },
+  categoryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F3F4F6',
+    borderRadius: 12,
+    padding: 12,
+    marginRight: 12,
+    maxHeight: 45,
+  },
+  selectedCategory: {
+    backgroundColor: '#3B82F6',
+  },
+  categoryText: {
+    marginLeft: 8,
+    color: '#6B7280',
+    fontWeight: '600',
+  },
+  selectedCategoryText: {
+    color: '#FFFFFF',
+  },
+  mastersContainer: {
+    flex: 1,
+    padding: 16,
+  },
+  masterCard: {
+    flexDirection: 'row',
+    backgroundColor: '#F3F4F6',
+    borderRadius: 12,
+    marginBottom: 16,
+    overflow: 'hidden',
+  },
+  masterImage: {
+    width: 100,
+    height: 100,
+  },
+  masterInfo: {
+    flex: 1,
+    padding: 12,
+  },
+  masterName: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1F2937',
+    marginBottom: 4,
+  },
+  masterCategory: {
+    fontSize: 14,
+    color: '#6B7280',
+    marginBottom: 8,
+  },
+  ratingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  ratingText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1F2937',
+    marginLeft: 4,
+  },
+  reviewsText: {
+    fontSize: 14,
+    color: '#6B7280',
+    marginLeft: 4,
+  },
+  detailsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  detailItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  detailText: {
+    marginLeft: 8,
+    color: '#6B7280',
+  },
+}); 
